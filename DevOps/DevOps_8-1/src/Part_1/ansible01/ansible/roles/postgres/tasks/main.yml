@@ -1,0 +1,37 @@
+- name: Install PostgreSQL and psycopg2
+  become: yes
+  apt:
+    name: 
+      - postgresql-12
+      - postgresql-client-12
+      - python3-psycopg2
+    state: latest
+
+- name: Drop and create table
+  become: yes
+  become_user: postgres
+  postgresql_query:
+    db: postgres
+    query: |
+      DROP TABLE IF EXISTS test_table;
+      CREATE TABLE test_table (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50)
+      );
+
+- name: Insert records into the table
+  become: yes
+  become_user: postgres
+  postgresql_query:
+    db: postgres
+    query: |
+      INSERT INTO test_table (name) 
+      VALUES ('Record 1'), ('Record 2'), ('Record 3');
+
+- name: Check if PostgreSQL service is running
+  service_facts:
+
+- name: Debug message for PostgreSQL service status
+  debug:
+    msg: "PostgreSQL service is running"
+  when: "'postgresql' in ansible_facts.services and ansible_facts.services['postgresql']['state'] == 'running'"

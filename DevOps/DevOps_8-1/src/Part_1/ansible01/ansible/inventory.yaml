@@ -1,0 +1,16 @@
+myhosts:
+  hosts:
+    node01:
+      ansible_host: 10.100.199.201
+      ansible_user: vagrant
+      roles:
+        - apache
+      # roles:
+        # - application
+
+    node02:
+      ansible_host: 10.100.199.202
+      ansible_user: vagrant
+      # roles:
+        # - apache
+        # - postgres

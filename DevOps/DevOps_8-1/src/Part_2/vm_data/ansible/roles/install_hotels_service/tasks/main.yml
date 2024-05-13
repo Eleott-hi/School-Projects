@@ -1,0 +1,19 @@
+- name: Copy source code of hotel service
+  copy:
+    src: hotel-service.jar
+    dest: hotel-service.jar
+
+- name: Install OpenJDK 8
+  apt:
+    name: openjdk-8-jdk
+    state: present
+
+- name: Run the hotel service
+  shell: java -jar hotel-service.jar
+  environment:
+    POSTGRES_HOST: "127.0.0.1"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "hotels_db"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "postgres"
+
