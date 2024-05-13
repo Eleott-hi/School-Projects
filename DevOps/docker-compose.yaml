@@ -1,0 +1,159 @@
+version: '3.8'
+
+x-common-variables: &common-variables
+  env_file: .env
+  networks:
+    - my-overlay-network
+
+services:
+  # PostgreSQL service
+  postgres:
+    image: postgres:16.2
+    restart: always
+    <<: *common-variables
+    ports:
+      - "5432:5432"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - ./src/services/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres:/var/lib/postgres/data
+
+  # RabbitMQ service
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    <<: *common-variables
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  # Session service
+  session-service:
+    image: nenvoy42/devops_7-1-session-service:latest
+    <<: *common-variables
+    ports:
+      - "8081:8081"
+    environment:
+      POSTGRES_DB: users_db
+    depends_on:
+      - postgres
+
+  # Hotel service
+  hotel-service:
+    image: nenvoy42/devops_7-1-hotel-service:latest
+    <<: *common-variables
+    ports:
+      - "8082:8082"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_DB: hotels_db
+    depends_on:
+      - postgres
+
+  # Bookingment service
+  booking-service:
+    image: nenvoy42/devops_7-1-booking-service:latest
+    <<: *common-variables
+    ports:
+      - "8083:8083"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_DB: reservations_db
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  # Payment service
+  payment-service:
+    image: nenvoy42/devops_7-1-payment-service:latest
+    <<: *common-variables
+    ports:
+      - "8084:8084"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_DB: payments_db
+    depends_on:
+      - postgres
+
+  # Loyalty service
+  loyalty-service:
+    image: nenvoy42/devops_7-1-loyalty-service:latest
+    <<: *common-variables
+    ports:
+      - "8085:8085"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_DB: balances_db
+    depends_on:
+      - postgres
+
+  # Report service
+  report-service:
+    image: nenvoy42/devops_7-1-report-service:latest
+    <<: *common-variables
+    ports:
+      - "8086:8086"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_DB: statistics_db
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  # Gateway service
+  gateway-service:
+    image: nenvoy42/devops_7-1-gateway-service:latest
+    <<: *common-variables
+    ports:
+      - "8087:8087"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - postgres
+
+  # Nginx service
+  nginx:
+    image: nginx:latest
+    <<: *common-variables
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
+    depends_on:
+      - gateway-service
+      - session-service
+
+networks:
+  my-overlay-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres:
