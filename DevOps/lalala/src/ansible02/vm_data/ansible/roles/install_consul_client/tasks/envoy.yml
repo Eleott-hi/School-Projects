@@ -1,0 +1,59 @@
+- name: Download Envoy Debian package
+  get_url:
+    url: https://github.com/envoyproxy/envoy/releases/download/v1.28.3/debs.tar.gz
+    dest: "/tmp/debs.tar.gz"
+
+- name: Create temporary directory for Envoy
+  ansible.builtin.file:
+    path: /tmp/envoy
+    state: directory
+
+- name: Extract Envoy Debian package
+  unarchive:
+    src: "/tmp/debs.tar.gz"
+    dest: "/tmp/envoy"
+    remote_src: yes
+
+- name: Install Envoy
+  apt:
+    deb: "/tmp/envoy/envoy_1.28.3_amd64.deb"
+
+- name: Remove temporary files and downloaded tar.gz
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/debs.tar.gz"
+    - "/tmp/envoy"
+
+- name: Verify Envoy installation
+  command: envoy --version
+  register: envoy_version
+  changed_when: false
+
+- debug:
+    var: envoy_version.stdout_lines
+
+- name: Create systemd service file for Envoy
+  become: yes
+  template:
+    src: envoy-consul.service.j2
+    dest: /etc/systemd/system/envoy-consul.service
+
+- name: Reload systemd daemon to recognize changes
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start envoy-consul service
+  systemd:
+    name: envoy-consul
+    enabled: yes
+    state: started
+
+- name: Check envoy-consul service status
+  command: systemctl status envoy-consul
+  register: envoy_consul_status
+  changed_when: false
+
+- debug:
+    var: envoy_consul_status.stdout_lines

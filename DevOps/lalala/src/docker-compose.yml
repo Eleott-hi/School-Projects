@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  # nginx-service:
+  #   image: eleott/nginx_service:dev0ps7
+  #   restart: on-failure
+  #   ports:
+  #     - 8081:8081
+  #     - 8087:8087
+  #   # build: ./nginx
+
+  # rabbitmq-service:
+  #   image: eleott/rabbitmq_service:dev0ps7
+  #   restart: on-failure
+      
+  # postgres-service:
+  #   image: eleott/postgres_service:dev0ps7  
+  #   restart: on-failure 
+  #   # build: ./services/database
+  
+  # booking-service:
+  #   image: eleott/booking_service:dev0ps7
+  #   restart: on-failure
+  #   # build: ./services/booking-service
+  
+  hotel-service:
+    # image: eleott/hotel_service:dev0ps7
+    restart: on-failure
+    build: ./services/hotel-service
+    volumes:
+      - ./tmp:/app/tmp
+    command: cp hotel-service-0.0.1-SNAPSHOT.jar tmp/hotel-service.jar
+      
+  # loyalty-service:
+  #   image: eleott/loyalty_service:dev0ps7
+  #   restart: on-failure
+  #   # build: ./services/loyalty-service
+        
+  # payment-service:
+  #   image: eleott/payment_service:dev0ps7
+  #   restart: on-failure
+  #   # build: ./services/payment-service
+    
+  # report-service:
+  #   image: eleott/report_service:dev0ps7
+  #   restart: on-failure
+  #   # build: ./services/report-service
+    
+  # session-service:
+  #   image: eleott/session_service:dev0ps7
+  #   restart: on-failure
+  #   # build: ./services/session-service
+  #   # ports:
+  #     # - 8081:8081
+  
+  # gateway-service:
+  #   image: eleott/gateway_service:dev0ps7
+  #   restart: on-failure
+  #   # build: ./services/gateway-service
+  #   # ports:
+  #     # - 8087:8087
