@@ -1,5 +1,0 @@
-- name: Include Consul installation tasks
-  include_tasks: consul.yml
-
-- name: Include Envoy installation tasks
-  include_tasks: envoy.yml
